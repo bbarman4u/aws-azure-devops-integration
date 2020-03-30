@@ -1,0 +1,34 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    sudo npm install -g aws-cdk
+    npm install
+    npm run build
+    cdk synth
+  displayName: 'npm install and build'
+- task: AWSShellScript@1
+  inputs:
+    awsCredentials: 'AWS-SANDBOX'
+    regionName: 'us-east-1'
+    scriptType: 'inline'
+    inlineScript: 'cdk deploy'
+    disableAutoCwd: true
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    failOnStandardError: false
+  displayName: 'cdk deploy'
+
